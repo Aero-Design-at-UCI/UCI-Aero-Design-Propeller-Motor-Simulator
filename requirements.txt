@@ -1,0 +1,6 @@
+numpy
+pandas
+matplotlib
+scipy
+openmdao      # only for the 'chain' / 'validate' commands
+# pythrust: install from your PyThrust fork root with:  pip install -e .

@@ -1,0 +1,14 @@
+# generated
+outputs/
+*_out/
+reports/
+__pycache__/
+*.pyc
+.venv/
+venv/
+# machine-specific
+pipeline_settings.json
+# third-party binaries - do not commit (download QPROP from https://web.mit.edu/drela/Public/web/qprop/)
+tools/*
+!tools/README.txt
+*.exe

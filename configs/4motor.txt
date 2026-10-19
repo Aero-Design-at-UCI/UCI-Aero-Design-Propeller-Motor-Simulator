@@ -1,0 +1,51 @@
+# ============================================================
+# 4-motor / 9-inch alternative, for direct comparison against
+# the 2-motor / 12-inch configs/2motor.txt.
+#
+# ASSUMPTION: the total aircraft thrust requirement is the same as in
+# 2motor.txt (80.064 N total takeoff = 18 lbf); only how it is split
+# across motors changes (20.016 N per motor with 4 motors).
+# If the real requirement differs, edit the *_total_N values and
+# recompute the per-prop values (total / num_props).
+# ============================================================
+
+# --- Propulsion rules / fixed hardware ---
+prop_diameter_in=9
+num_props=4
+voltage_v=14.8
+battery_capacity_mah=2200.0
+# Roaring Top IS-80C-2200-4S (manufacturer's claim; real sustained limit is lower, internal resistance not published)
+battery_c_continuous=80
+battery_c_burst=140
+ground_roll_limit_ft=100.0
+max_weight_lb=55.0
+
+# --- Weight & payload (same as 2motor.txt; revisit if 4 smaller
+#     motors/ESCs weigh meaningfully more or less than 2 larger ones) ---
+empty_weight_lb=15.0
+full_bottle_weight_lb=4.0
+num_full_bottles=2
+empty_bottle_weight_lb=1.0
+num_empty_bottles=0
+payload_lb=8.0000
+total_weight_lb=23.0000
+total_weight_N=102.3091
+
+# --- Flight point 1: takeoff ---
+# 18 lbf total / 4 motors
+takeoff_speed_mps=0.0
+takeoff_thrust_total_N=80.0640
+takeoff_thrust_per_prop_N=20.0160
+
+# --- Flight point 2: climb ---
+# Same climb/takeoff ratio as 2motor.txt (30.6927 / 40.9236 = 0.75),
+# applied to the 80.064 N takeoff total. Adjust if the real climb
+# requirement is different.
+climb_speed_mps=12.0
+climb_thrust_total_N=60.0480
+climb_thrust_per_prop_N=15.0120
+
+# --- PyThrust search bounds ---
+kv_min=300.0
+kv_max=1200.0
+num_candidates=10

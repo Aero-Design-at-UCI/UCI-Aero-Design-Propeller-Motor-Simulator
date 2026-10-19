@@ -1,0 +1,43 @@
+# ============================================================
+# Mission config for PyThrust -> QMIL -> QPROP propulsion pipeline
+# Mission config (edit values here)
+# SAE Aero Design 2026, Regular Class
+# ============================================================
+
+# --- Propulsion rules / fixed hardware ---
+prop_diameter_in=12
+num_props=2
+voltage_v=14.8
+battery_capacity_mah=2200.0
+# Roaring Top IS-80C-2200-4S (manufacturer's claim; real sustained limit is lower, internal resistance not published)
+battery_c_continuous=80
+battery_c_burst=140
+ground_roll_limit_ft=100.0
+max_weight_lb=55.0
+
+# --- Weight & payload ---
+empty_weight_lb=15.0
+full_bottle_weight_lb=4.0
+num_full_bottles=2
+empty_bottle_weight_lb=1.0
+num_empty_bottles=0
+payload_lb=8.0000
+total_weight_lb=23.0000
+total_weight_N=102.3091
+
+# --- Flight point 1: takeoff ---
+takeoff_speed_mps=0.0
+takeoff_tw_ratio=0.4
+takeoff_thrust_total_N=40.9236
+takeoff_thrust_per_prop_N=20.4618
+
+# --- Flight point 2: climb ---
+climb_speed_mps=12.0
+climb_tw_ratio=0.3
+climb_thrust_total_N=30.6927
+climb_thrust_per_prop_N=15.3464
+
+# --- PyThrust search bounds ---
+kv_min=300.0
+kv_max=1200.0
+num_candidates=10
