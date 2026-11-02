@@ -5,7 +5,7 @@
   motors    generate the Kv sweep (outputs/<name>/motors.json)
   props     design the QMIL prop family (outputs/<name>/props/)
   sweep     QPROP every motor x prop at takeoff + climb
-  plot      scatter (PNG + clickable SVG), lines, heatmaps, links.html, qualifying CSV
+  plot      export scatter/line/heatmap figures, links.html, and qualifying CSV
   match     closest real (purchasable) APC props for the qualifying designs
   bench     which real props reproduce a thrust-stand measurement (motor Kv/R/Io, loaded V)
   analyze   flight-performance estimates for the top feasible combos
@@ -166,20 +166,28 @@ def _load(args, dirs):
 def do_plot(args, cfg, dirs):
     from . import plots
     from .links import load_motor_urls
+    import matplotlib.pyplot as plt
     df = _load(args, dirs)
     df = plots.add_link_columns(df, args.link_to, getattr(args, "vendor", "google"),
                                 load_motor_urls(getattr(args, "motors_file", None) or dirs.motors_json),
                                 getattr(args, "cells", 4))
     g = dirs.graphs_dir; g.mkdir(parents=True, exist_ok=True)
-    plots.plot_scatter(df, args.min_thrust_lbf, args.max_amps, g / "scatter_thrust.png", g / "scatter_thrust.svg")
-    plots.plot_lines(df, args.min_thrust_lbf, g / "thrust_vs_prop_lines.png")
+    scatter = plots.plot_scatter(df, args.min_thrust_lbf, args.max_amps, include_link_hint=True)
+    plots.save_figure(scatter, g / "scatter_thrust.png")
+    plots.save_figure(scatter, g / "scatter_thrust.svg")
+    plt.close(scatter)
+    lines = plots.plot_lines(df, args.min_thrust_lbf)
+    plots.save_figure(lines, g / "thrust_vs_prop_lines.png")
+    plt.close(lines)
     cols = [c for c in ("motor", "kv", "prop", "prop_label", "pitch_in", "takeoff_thrust_lbf", "climb_thrust_lbf",
                         "takeoff_amps", "climb_amps", "feasible", "qualifies", "prop_url", "motor_url", "node_url") if c in df]
     df[cols].to_csv(g / "node_links.csv", index=False)
     df[df["qualifies"]].sort_values("kv")[cols].to_csv(g / "qualifying_combos.csv", index=False)
     plots.write_links_html(df, g / "links.html", args.min_thrust_lbf, args.max_amps)
     if args.heatmaps:
-        plots.plot_heatmaps(df, g / "heatmaps")
+        for name, fig in plots.plot_heatmaps(df):
+            plots.save_figure(fig, g / "heatmaps" / f"{name}.png", dpi=140)
+            plt.close(fig)
     nq = int(df["qualifies"].sum())
     print(f"{nq}/{len(df)} combos reach {args.min_thrust_lbf:g} lbf per motor at takeoff and climb within {args.max_amps:g} A.")
     print(f"Wrote scatter_thrust.png/.svg, thrust_vs_prop_lines.png, node_links.csv, qualifying_combos.csv, links.html in {g}")
@@ -235,6 +243,7 @@ def cmd_bench(args):
 def do_analyze(args, cfg, dirs):
     from . import plots
     from .analysis import Assumptions, analyze_top
+    import matplotlib.pyplot as plt
     import pandas as pd
     df = _load(args, dirs)
     a = Assumptions(args.ld_ratio, args.cruise_speed, args.usable_fraction, args.esc_efficiency,
@@ -245,7 +254,9 @@ def do_analyze(args, cfg, dirs):
                  f"Loosen --max-amps or --min-thrust-lbf.")
     out = dirs.performance_dir; out.mkdir(parents=True, exist_ok=True)
     res.to_csv(out / "top_candidates_performance.csv", index=False)
-    plots.plot_thrust_curves(curves, out / "thrust_vs_airspeed.png", a)
+    fig = plots.plot_thrust_curves(curves, a)
+    plots.save_figure(fig, out / "thrust_vs_airspeed.png")
+    plt.close(fig)
     pd.set_option("display.width", 250); pd.set_option("display.max_columns", None)
     print(res.drop(columns=["prop_url"], errors="ignore").round(2).to_string(index=False))
     print("\nPer-motor columns are for ONE motor; battery columns are for the whole aircraft.")
