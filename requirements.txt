@@ -1,7 +1,6 @@
 numpy
 pandas
 matplotlib
-ipykernel       # VS Code Python/Jupyter interactive plot viewer
 scipy
 openmdao      # only for the 'chain' / 'validate' commands
 # pythrust: install from your PyThrust fork root with:  pip install -e .

@@ -64,32 +64,11 @@ Each config gets its own `outputs/<name>/` folder (override with `--name`). Indi
 
 `--max-amps` is applied when results are *read* (plot/analyze), so changing it never needs a re-sweep.
 
-### View plots natively in VS Code
-
-The repository uses VS Code's Python/Jupyter Interactive Window; there is no separate plotter app or
-forced Matplotlib GUI backend. Install the Microsoft **Python** and **Jupyter** VS Code extensions, then:
-
-1. Open `vscode_plots.py` in VS Code and select the project's `.venv` Python interpreter.
-2. Edit `RUN_NAME`, current/thrust limits, and `SHOW_HEATMAPS` in the first `# %%` cell.
-3. Choose **Run All Cells** (or run each cell). The figures appear inline; use the plot-viewer button on a
-   figure to pan, zoom, and export it.
-
-The interactive file reads an existing `outputs/<run name>/results.csv`, so run `sweep` or `run` first.
-Changing plot limits only reloads that data; it never reruns QPROP. `ipykernel` is included in
-`requirements.txt` so the selected virtual environment can back the Interactive Window.
-
-For non-interactive/report workflows, `python -m pipeline plot ...` still exports the same PNG, clickable
-SVG, CSV, and HTML artifacts. Figure construction is shared between that command and `vscode_plots.py`,
-so the native and exported views use the same data, feasibility rules, labels, and styling.
-
 ## 4. Outputs
 
 `outputs/<name>/graphs/`: `scatter_thrust.png/.svg` (thrust in lbf vs prop pitch, coloured by Kv; open the **SVG in a browser** and click a dot),
 `links.html` (clickable table of every combo that qualifies), `node_links.csv`, `qualifying_combos.csv`, `thrust_vs_prop_lines.png`.
 `outputs/<name>/performance/`: `top_candidates_performance.csv`, `thrust_vs_airspeed.png`.
-
-VS Code's native figure view does not make Matplotlib scatter points into hyperlinks. Use `links.html`,
-`node_links.csv`, or the exported SVG when you need the shopping links attached to individual points.
 
 ### About the links and real props
 - The QMIL blades are aerodynamic designs and are **not purchasable**. `catalog.py` holds the real APC model list (from APC's published performance-data files);
@@ -118,8 +97,7 @@ VS Code's native figure view does not make Matplotlib scatter points into hyperl
 | `motors.py`, `props.py`, `sweep.py` | the grid: motor axis, prop axis, QPROP sweep |
 | `catalog.py` | real APC model list + closest-pitch matching |
 | `results.py`, `links.py`, `propfile.py` | load results, apply `--max-amps`, prop geometry and shopping links |
-| `plots.py`, `analysis.py` | reusable Matplotlib figures; flight-performance estimates |
-| `vscode_plots.py` | `# %%` cells for VS Code's native Python/Jupyter plot viewer |
+| `plots.py`, `analysis.py` | graphs; flight-performance estimates |
 | `search.py`, `chain.py`, `validate.py` | PyThrust stage, QMIL->QPROP->rank chain, bench comparison |
 
 ## 7. Troubleshooting
