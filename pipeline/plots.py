@@ -1,4 +1,6 @@
-"""Plots. Thrust is always in lbf. Scatter x axis = geometric prop pitch (in).
+"""Matplotlib figures for CLI export and VS Code's Jupyter plot viewer.
+
+Thrust is always in lbf. Scatter x axis = geometric prop pitch (in).
 
 Colour: Kv uses ONE sequential blue ramp (light = low Kv, dark = high Kv).
 Infeasible points are drawn as grey crosses AND listed in the legend, so meaning
@@ -9,8 +11,6 @@ from __future__ import annotations
 from html import escape
 from pathlib import Path
 
-import matplotlib
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
@@ -42,7 +42,7 @@ def add_link_columns(df, link_to="prop", vendor="google", motor_urls=None, cells
     return df
 
 
-def plot_scatter(df, min_lbf, max_amps, out_png, out_svg=None):
+def plot_scatter(df, min_lbf, max_amps, *, include_link_hint=False):
     """Two panels (takeoff, climb): thrust per motor (lbf) vs prop pitch, coloured by Kv."""
     xcol = "pitch_in" if "pitch_in" in df.columns else None
     d = df.copy()
@@ -84,15 +84,12 @@ def plot_scatter(df, min_lbf, max_amps, out_png, out_svg=None):
     n_q = int(d["qualifies"].sum()) if "qualifies" in d else 0
     fig.suptitle(f"Thrust per motor vs prop pitch - {n_q}/{len(d)} combos meet "
                  f"{min_lbf:g} lbf at both points within {max_amps:g} A"
-                 + ("  (click a dot in the SVG to open its link)" if out_svg else ""),
+                 + ("  (click a dot in the exported SVG to open its link)" if include_link_hint else ""),
                  x=0.01, ha="left", fontsize=11, color=INK)
-    fig.savefig(out_png, dpi=150, bbox_inches="tight")
-    if out_svg:
-        fig.savefig(out_svg, bbox_inches="tight")
-    plt.close(fig)
+    return fig
 
 
-def plot_lines(df, min_lbf, out_png):
+def plot_lines(df, min_lbf):
     """Thrust vs prop, one thin line per Kv (sequential ramp)."""
     kvs = sorted(df["kv"].unique())
     order = sorted(df["prop"].unique())
@@ -109,8 +106,7 @@ def plot_lines(df, min_lbf, out_png):
     axes[-1].set_xlabel("Prop design (p00 = lowest design thrust / pitch ... highest)", color=MUTED)
     fig.colorbar(plt.cm.ScalarMappable(norm=plt.Normalize(min(kvs), max(kvs)), cmap=KV_CMAP),
                  ax=axes, label="Motor Kv (RPM/V)")
-    fig.savefig(out_png, dpi=150, bbox_inches="tight")
-    plt.close(fig)
+    return fig
 
 
 HEATMAPS = [
@@ -123,10 +119,9 @@ HEATMAPS = [
 ]
 
 
-def plot_heatmaps(df, out_dir):
+def plot_heatmaps(df):
     """One heatmap per metric (motors by Kv on y, props on x); infeasible cells hatched with X."""
-    out_dir = Path(out_dir); out_dir.mkdir(parents=True, exist_ok=True)
-    written = []
+    figures = []
     for col, title, cmap, feas in HEATMAPS:
         piv = df.pivot(index="kv", columns="prop", values=col).sort_index()
         fp = df.pivot(index="kv", columns="prop", values=feas).reindex(index=piv.index, columns=piv.columns)
@@ -140,13 +135,11 @@ def plot_heatmaps(df, out_dir):
         ax.set_xlabel("Prop"); ax.set_ylabel("Motor Kv (RPM/V)")
         ax.set_title(title + "   (x = infeasible)", loc="left", fontsize=11)
         fig.colorbar(im, ax=ax)
-        path = out_dir / f"heatmap_{col}.png"
-        fig.savefig(path, dpi=140, bbox_inches="tight"); plt.close(fig)
-        written.append(path)
-    return written
+        figures.append((f"heatmap_{col}", fig))
+    return figures
 
 
-def plot_thrust_curves(curves, out_png, a):
+def plot_thrust_curves(curves, a):
     """Total aircraft thrust vs airspeed (lbf) with the assumed drag curve."""
     fig, ax = plt.subplots(figsize=(9, 5.5))
     for i, c in enumerate(curves):
@@ -158,7 +151,15 @@ def plot_thrust_curves(curves, out_png, a):
     ax.set_xlabel("Airspeed (m/s)", color=MUTED); ax.set_ylabel("Total thrust, full throttle (lbf)", color=MUTED)
     ax.set_title("Where a curve meets the dashed drag line is that design's max level speed", loc="left", fontsize=11)
     ax.legend(fontsize=7, frameon=False, ncol=2); _style(ax)
-    fig.savefig(out_png, dpi=150, bbox_inches="tight"); plt.close(fig)
+    return fig
+
+
+def save_figure(fig, path, *, dpi=150):
+    """Save a figure for reports without choosing a global Matplotlib backend."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=dpi, bbox_inches="tight")
+    return path
 
 
 def write_links_html(df, path, min_lbf, max_amps):

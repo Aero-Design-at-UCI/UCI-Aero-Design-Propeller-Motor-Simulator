@@ -37,7 +37,7 @@ def check_python():
 
 
 def check_packages():
-    for mod, needed in (("numpy", True), ("pandas", True), ("matplotlib", True), ("scipy", True),
+    for mod, needed in (("numpy", True), ("pandas", True), ("matplotlib", True), ("ipykernel", True), ("scipy", True),
                         ("openmdao", False), ("pythrust", False)):
         try:
             m = importlib.import_module(mod)
